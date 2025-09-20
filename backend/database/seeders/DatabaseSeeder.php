@@ -13,6 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 権限とロールを最初に作成
+        $this->call([
+            PermissionSeeder::class,
+        ]);
+
         // User::factory(10)->create();
 
         User::factory()->create([
