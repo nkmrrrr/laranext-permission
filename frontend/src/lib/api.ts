@@ -7,6 +7,10 @@ export const api = axios.create({
     Accept: "application/json",
   },
   withCredentials: true,
+
+  // https://www.mochot.com/posts/laravel-sanctum-419-csrf-error
+  // withCredentials: true // だけではなく、withXSRFToken: true を指定しないとCSRFトークンが自動で送信されない
+  withXSRFToken: true,
 });
 
 // リクエストインターセプター: トークンを自動で追加
@@ -37,6 +41,7 @@ api.interceptors.response.use(
 );
 
 // 型定義
+// MEMO: type.ts などに分離しても良いが、ファイル数が増えすぎるので一旦ここにまとめる
 export interface User {
   id: number;
   name: string;
@@ -82,15 +87,20 @@ export interface PaginatedResponse<T> {
 
 // API関数
 export const authApi = {
-  login: (email: string, password: string) =>
-    api.post<
+  getCsrfCookie: async () => {
+    return api.get("/sanctum/csrf-cookie");
+  },
+
+  login: async (email: string, password: string) => {
+    return api.post<
       ApiResponse<{
         user: User;
         token: string;
         permissions: string[];
         roles: string[];
       }>
-    >("/login", { email, password }),
+    >("/login", { email, password });
+  },
 
   logout: () => api.post<ApiResponse<null>>("/logout"),
 

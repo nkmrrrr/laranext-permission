@@ -44,7 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    console.log("CSRFクッキーを取得中...");
+    await authApi.getCsrfCookie();
+    console.log("CSRFクッキー取得完了");
+
+    console.log("ログイン中...");
     const response = await authApi.login(email, password);
+    console.log("ログイン成功:", response.data);
+
     const { user, token, permissions, roles } = response.data.data;
 
     localStorage.setItem("auth_token", token);
