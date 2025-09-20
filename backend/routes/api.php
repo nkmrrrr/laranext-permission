@@ -1,11 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use Illuminate\Validation\ValidationException;
 
 // ヘルスチェックエンドポイント
 Route::get('/health-check', function () {
@@ -17,37 +15,13 @@ Route::get('/health-check', function () {
 });
 
 // 認証エンドポイント
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+Route::post('/login', [AuthController::class, 'login']);
 
-    $user = User::where('email', $request->email)->first();
+// 認証が必要なエンドポイント
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.'],
-        ]);
-    }
-
-    $token = $user->createToken('api-token')->plainTextToken;
-
-    return response()->json([
-        'user' => $user,
-        'token' => $token,
-        'token_type' => 'Bearer',
-    ]);
+    // 投稿関連のエンドポイント
+    Route::apiResource('posts', PostController::class);
 });
-
-Route::post('/logout', function (Request $request) {
-    $request->user()->currentAccessToken()->delete();
-
-    return response()->json([
-        'message' => 'Logged out successfully'
-    ]);
-})->middleware('auth:sanctum');
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');

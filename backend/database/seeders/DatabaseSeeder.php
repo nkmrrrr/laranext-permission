@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         // 権限とロールを最初に作成
         $this->call([
             PermissionSeeder::class,
+            UserRoleSeeder::class,
+            PostSeeder::class,
         ]);
 
         // User::factory(10)->create();
